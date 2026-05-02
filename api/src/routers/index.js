@@ -3,6 +3,5 @@ import apiRouter from "#routers/api.js";
 
 const rootRouter = express.Router();
 
-rootRouter.use("/api", apiRouter);
-
+rootRouter.use("/", apiRouter);
 export default rootRouter;

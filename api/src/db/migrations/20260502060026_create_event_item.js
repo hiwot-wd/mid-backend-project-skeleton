@@ -4,6 +4,9 @@ export function up(knex) {
     table.string("title").notNullable();
     table.text("description");
     table.date("date");
+
+    table.decimal("price", 10, 2).notNullable();
+
     table.timestamp("created_at").defaultTo(knex.fn.now());
 
     table

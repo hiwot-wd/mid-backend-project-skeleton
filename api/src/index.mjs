@@ -18,22 +18,36 @@
  * ================================================================
  */
 
-import "dotenv/config";           // Loads environment variables from .env
-import express from "express";    // Express web framework
-import cors from "cors";          // Cross-Origin Resource Sharing middleware
+import "dotenv/config"; // Loads environment variables from .env
+import express from "express"; // Express web framework
+import cors from "cors"; // Cross-Origin Resource Sharing middleware
 import bodyParser from "body-parser"; // JSON body parsing
-import rootRouter from "#routers";    // Main router aggregator
+import rootRouter from "#routers"; // Main router aggregator
 import swaggerSetup from "#configs/swagger.js"; // Swagger documentation setup
-import {
-  globalMiddlewares,
-  terminalMiddlewares,
-} from "#middlewares"; // Middleware groups
+import { globalMiddlewares, terminalMiddlewares } from "#middlewares"; // Middleware groups
 
-// ------------------------------------------------------------------
 // Application Initialization
-// ------------------------------------------------------------------
-
 const app = express();
+
+// Global middlewares
+app.use(cors());
+app.use(bodyParser.json());
+app.use(globalMiddlewares);
+
+// Mount API routes
+app.use("/api", rootRouter);
+
+// Mount Swagger AFTER routes
+swaggerSetup(app);
+
+// Terminal middlewares
+app.use(terminalMiddlewares);
+
+const PORT = process.env.PORT ?? 3000;
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Swagger docs available at http://localhost:${PORT}/docs`);
+});
 
 // Enable CORS for all incoming requests
 app.use(cors());
@@ -81,6 +95,6 @@ const port = process.env.PORT ?? 3000;
 
 app.listen(port, () => {
   console.info(
-      `${process.env.APP_NAME || "Backend-Mid-Specialism"} app started on port ${port}`
+    `${process.env.APP_NAME || "Backend-Mid-Specialism"} app started on port ${port}`,
   );
 });

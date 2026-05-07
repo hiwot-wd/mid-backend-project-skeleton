@@ -25,7 +25,7 @@ const eventsRouter = express.Router();
 
 /**
  * @swagger
- * /api/events:
+ * /events:
  *   get:
  *     summary: Get paginated list of events
  *     description: Returns a paginated list of events. Pagination is zero-based. Supports optional search.
@@ -92,7 +92,7 @@ eventsRouter.get("/", getEvents);
 
 /**
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   get:
  *     summary: Get event by ID
  *     description: Returns a single event by its ID.
@@ -143,7 +143,7 @@ eventsRouter.get("/:id", getEventById);
  * Example of a "create event" endpoint (typically admin functionality).
  *
  * @swagger
- * /api/events:
+ * /events:
  *   post:
  *     summary: Create event (optional/admin)
  *     tags:
@@ -160,7 +160,7 @@ eventsRouter.post("/", postEvent);
  * Example of an "update event" endpoint.
  *
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   patch:
  *     summary: Update event (optional/admin)
  *     tags:
@@ -183,7 +183,7 @@ eventsRouter.patch("/:id", patchEvent);
  * Example of a "delete event" endpoint.
  *
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   delete:
  *     summary: Delete event (optional/admin)
  *     tags:

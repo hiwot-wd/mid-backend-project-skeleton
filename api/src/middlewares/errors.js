@@ -1,8 +1,12 @@
 import { ZodError } from "zod";
 
 function getErrorStatus(error) {
-  if (error instanceof ZodError) {
-    return 400;
+  if (error instanceof ZodError) return 400;
+  if (
+    error.name === "JsonWebTokenError" ||
+    error.name === "TokenExpiredError"
+  ) {
+    return 401;
   }
 
   const status = Number(error?.status ?? error?.statusCode);

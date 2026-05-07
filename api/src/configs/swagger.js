@@ -65,6 +65,68 @@ const swaggerOptions = {
             },
           },
         },
+        AuthSignupInput: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email" },
+            password: { type: "string", minLength: 6 },
+          },
+        },
+
+        AuthLoginInput: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email" },
+            password: { type: "string" },
+          },
+        },
+
+        AuthTokenResponse: {
+          type: "object",
+          properties: {
+            token: { type: "string" },
+          },
+        },
+        Cart: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            user_id: { type: "integer", nullable: true },
+            cart_token: { type: "string", nullable: true },
+            created_at: { type: "string", format: "date-time" },
+          },
+        },
+
+        CartItem: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            cart_id: { type: "integer" },
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer" },
+            title: { type: "string" },
+            price: { type: "number" },
+          },
+        },
+
+        CartAddItemInput: {
+          type: "object",
+          required: ["event_item_id", "quantity"],
+          properties: {
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer", minimum: 1 },
+          },
+        },
+
+        CartUpdateItemInput: {
+          type: "object",
+          required: ["quantity"],
+          properties: {
+            quantity: { type: "integer", minimum: 1 },
+          },
+        },
       },
     },
   },

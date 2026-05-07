@@ -81,6 +81,7 @@ export async function getEvents(req, res, next) {
     });
 
     const totalItems = await countEvents(filters);
+
     const totalPages = Math.ceil(totalItems / pageSize);
 
     res.json({

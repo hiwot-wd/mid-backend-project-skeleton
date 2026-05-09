@@ -1,11 +1,18 @@
 import db from "#configs/database.js";
 import jwt from "jsonwebtoken";
 
-/**
- * Create a new user
- * Used by POST /api/auth/signup
- */
-export async function createUser({ email, password }) {
+//Fetch user by Id
+export async function getUserById(id, options = {}) {
+  const { trx } = options;
+
+  return db("app_user")
+    .select("id", "email", "created_at")
+    .where({ id })
+    .first()
+    .transacting(trx);
+}
+//Signup user
+export async function signupUser({ email, password }) {
   const existing = await db("app_user").where({ email }).first();
 
   if (existing) {
@@ -25,30 +32,25 @@ export async function createUser({ email, password }) {
   return user;
 }
 
-/**
- * Find user by email
- * Used by login
- */
+//Find user by email
+
 export async function findUserByEmail(email) {
   return db("app_user").where({ email }).first();
 }
 
-/**
- * Create JWT for a user
- */
-export function createJwtForUser(userId) {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+//Login user(New)
+export async function loginUser({ email, password }) {
+  const user = await findUserByEmail(email);
+
+  if (!user || user.password !== password) {
+    const error = new Error("Invalid email or password");
+    error.status = 401;
+    throw error;
+  }
+
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
-}
 
-/**
- * Get user by ID
- * Used by GET /api/auth/me
- */
-export async function findUserById(id) {
-  return db("app_user")
-    .select("id", "email", "created_at")
-    .where({ id })
-    .first();
+  return token;
 }

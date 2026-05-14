@@ -1,4 +1,26 @@
 import db from "#configs/database.js";
+// Checkout cart (transactional)
+export async function checkoutCart(userId, cartId) {
+  return db.transaction(async (trx) => {
+    // Create empty order
+    const order = await createOrder(userId, trx);
+
+    // Copy cart items → order items
+    await snapshotOrderItems(order.id, cartId, trx);
+
+    // Update order total
+    const total = await updateOrderTotal(order.id, trx);
+
+    // Clear cart
+    await trx("cart_item").where({ cart_id: cartId }).del();
+
+    // Return final order
+    return {
+      order,
+      total,
+    };
+  });
+}
 
 export async function createOrder(userId, trx = db) {
   const [order] = await trx("customer_order")

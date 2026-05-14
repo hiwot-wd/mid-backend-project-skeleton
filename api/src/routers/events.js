@@ -1,10 +1,10 @@
 import express from "express";
 import {
-    getEvents,
-    getEventById,
-    postEvent,
-    patchEvent,
-    removeEvent,
+  getEvents,
+  getEventById,
+  postEvent,
+  patchEvent,
+  removeEvent,
 } from "#controllers/events.js";
 
 const eventsRouter = express.Router();
@@ -25,10 +25,10 @@ const eventsRouter = express.Router();
 
 /**
  * @swagger
- * /api/events:
+ * /events:
  *   get:
  *     summary: Get paginated list of events
- *     description: Returns a paginated list of events. Pagination is zero-based.
+ *     description: Returns a paginated list of events. Pagination is zero-based. Supports optional search.
  *     tags:
  *       - Events
  *     parameters:
@@ -38,11 +38,22 @@ const eventsRouter = express.Router();
  *           type: integer
  *           minimum: 0
  *           default: 0
- *         required: false
- *         description: Page number (zero-based)
+ *         description: Zero-based page index.
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 20
+ *         description: Number of items per page.
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search query applied to event titles.
  *     responses:
  *       200:
- *         description: Paginated list of events
+ *         description: Paginated list of events.
  *         content:
  *           application/json:
  *             schema:
@@ -51,62 +62,40 @@ const eventsRouter = express.Router();
  *                 data:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         example: 1
- *                       price:
- *                         type: number
- *                         example: 150
- *                       currency:
- *                         type: string
- *                         example: DKK
- *                       title:
- *                         type: string
- *                         example: Live Jazz Trio
- *                       description:
- *                         type: string
- *                         example: An intimate jazz evening.
- *                       created_at:
- *                         type: string
- *                         format: date-time
- *                       updated_at:
- *                         type: string
- *                         format: date-time
+ *                     $ref: "#/components/schemas/Event"
  *                 meta:
  *                   type: object
  *                   properties:
  *                     page:
  *                       type: integer
- *                       example: 0
  *                     pageSize:
  *                       type: integer
- *                       example: 5
  *                     totalItems:
  *                       type: integer
- *                       example: 245
  *                     totalPages:
  *                       type: integer
- *                       example: 49
  *       400:
- *         description: Invalid query parameters
+ *         description: Invalid query parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
  *       500:
- *         description: Server error
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
  */
+
 eventsRouter.get("/", getEvents);
 
 /**
- * OPTIONAL ROUTE PLACEHOLDER
- *
- * Demonstrates how a "get single resource" endpoint would be added.
- * Not required in the base trainee assignment unless optional scope
- * is implemented.
- *
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   get:
  *     summary: Get event by ID
+ *     description: Returns a single event by its ID.
  *     tags:
  *       - Events
  *     parameters:
@@ -115,13 +104,37 @@ eventsRouter.get("/", getEvents);
  *         required: true
  *         schema:
  *           type: integer
- *         description: Event ID
+ *         description: Event ID.
  *     responses:
  *       200:
- *         description: Event found
+ *         description: Event found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: "#/components/schemas/Event"
  *       404:
- *         description: Event not found
+ *         description: Event not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ *       400:
+ *         description: Invalid ID format.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
  */
+
 eventsRouter.get("/:id", getEventById);
 
 /**
@@ -130,7 +143,7 @@ eventsRouter.get("/:id", getEventById);
  * Example of a "create event" endpoint (typically admin functionality).
  *
  * @swagger
- * /api/events:
+ * /events:
  *   post:
  *     summary: Create event (optional/admin)
  *     tags:
@@ -147,7 +160,7 @@ eventsRouter.post("/", postEvent);
  * Example of an "update event" endpoint.
  *
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   patch:
  *     summary: Update event (optional/admin)
  *     tags:
@@ -170,7 +183,7 @@ eventsRouter.patch("/:id", patchEvent);
  * Example of a "delete event" endpoint.
  *
  * @swagger
- * /api/events/{id}:
+ * /events/{id}:
  *   delete:
  *     summary: Delete event (optional/admin)
  *     tags:

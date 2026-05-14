@@ -8,15 +8,159 @@ import listEndpoints from "express-list-endpoints";
  * where to scan for @swagger annotations.
  */
 const swaggerOptions = {
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: process.env.APP_NAME ?? "Backend-Mid-Specialism",
-            version: process.env.APP_VERSION ?? "0.0.1",
-            description: "API documentation",
-        },
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: process.env.APP_NAME ?? "Backend-Mid-Specialism",
+      version: process.env.APP_VERSION ?? "0.0.1",
+      description: "API documentation",
     },
-    apis: ["./src/routers/**/*.js", "./src/routers/*.js"],
+    servers: [
+      {
+        url: "http://localhost:3000",
+        description: "Local development server",
+      },
+      {
+        url: "https://your-production-domain.com",
+        description: "Production server",
+      },
+    ],
+    components: {
+      schemas: {
+        Event: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            title: { type: "string" },
+            description: { type: "string" },
+            price: { type: "number" },
+            currency: { type: "string" },
+            created_at: { type: "string", format: "date-time" },
+            updated_at: { type: "string", format: "date-time" },
+          },
+        },
+        ErrorResponse: {
+          type: "object",
+          properties: {
+            error: {
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                code: { type: "string" },
+                details: { type: "string", nullable: true },
+                issues: {
+                  type: "array",
+                  nullable: true,
+                  items: {
+                    type: "object",
+                    properties: {
+                      path: { type: "string" },
+                      message: { type: "string" },
+                    },
+                  },
+                },
+                path: { type: "string", nullable: true },
+                stack: { type: "string", nullable: true },
+              },
+            },
+          },
+        },
+        AuthSignupInput: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email" },
+            password: { type: "string", minLength: 6 },
+          },
+        },
+
+        AuthLoginInput: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email" },
+            password: { type: "string" },
+          },
+        },
+
+        AuthTokenResponse: {
+          type: "object",
+          properties: {
+            token: { type: "string" },
+          },
+        },
+        Cart: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            user_id: { type: "integer", nullable: true },
+            cart_token: { type: "string", nullable: true },
+            created_at: { type: "string", format: "date-time" },
+          },
+        },
+
+        CartItem: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            cart_id: { type: "integer" },
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer" },
+            title: { type: "string" },
+            price: { type: "number" },
+          },
+        },
+
+        CartAddItemInput: {
+          type: "object",
+          required: ["event_item_id", "quantity"],
+          properties: {
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer", minimum: 1 },
+          },
+        },
+
+        CartUpdateItemInput: {
+          type: "object",
+          required: ["quantity"],
+          properties: {
+            quantity: { type: "integer", minimum: 1 },
+          },
+        },
+        Order: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            user_id: { type: "integer" },
+            status: { type: "string" },
+            total_amount: { type: "number" },
+            created_at: { type: "string", format: "date-time" },
+          },
+        },
+        OrderItem: {
+          type: "object",
+          properties: {
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer" },
+            price: { type: "number" },
+            name: { type: "string" },
+          },
+        },
+        OrderWithItems: {
+          type: "object",
+          properties: {
+            order: { $ref: "#/components/schemas/Order" },
+            items: {
+              type: "array",
+              items: { $ref: "#/components/schemas/OrderItem" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  apis: ["./src/routers/**/*.js", "./src/routers/*.js"],
 };
 
 /**
@@ -26,10 +170,10 @@ const swaggerOptions = {
  * Ensures that every route still appears in Swagger UI.
  */
 const openApiEndpointSpecStub = {
-    tags: ["Undocumented"],
-    responses: {
-        200: { description: "OK" },
-    },
+  tags: ["Undocumented"],
+  responses: {
+    200: { description: "OK" },
+  },
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -46,7 +190,7 @@ const swaggerServe = swaggerUi.serve;
  * @returns {string}
  */
 function expressPathToOpenApiPath(path) {
-    return path.replace(/:([A-Za-z0-9_]+)/g, "{$1}");
+  return path.replace(/:([A-Za-z0-9_]+)/g, "{$1}");
 }
 
 /**
@@ -69,24 +213,24 @@ function expressPathToOpenApiPath(path) {
  * }
  */
 const generateOpenApiSpecs = (app) => {
-    const specs = {};
+  const specs = {};
 
-    for (const ep of listEndpoints(app)) {
-        const normalizedPath = expressPathToOpenApiPath(ep.path);
+  for (const ep of listEndpoints(app)) {
+    const normalizedPath = expressPathToOpenApiPath(ep.path);
 
-        specs[normalizedPath] ??= {};
+    specs[normalizedPath] ??= {};
 
-        for (const method of ep.methods) {
-            const m = method.toLowerCase();
+    for (const method of ep.methods) {
+      const m = method.toLowerCase();
 
-            specs[normalizedPath][m] ??= {
-                ...openApiEndpointSpecStub,
-                summary: `Undocumented: ${method} ${normalizedPath}`,
-            };
-        }
+      specs[normalizedPath][m] ??= {
+        ...openApiEndpointSpecStub,
+        summary: `Undocumented: ${method} ${normalizedPath}`,
+      };
     }
+  }
 
-    return specs;
+  return specs;
 };
 
 /**
@@ -101,22 +245,22 @@ const generateOpenApiSpecs = (app) => {
  * @param {import("express").Application} app - Express application instance
  */
 const swaggerSetup = (app) => {
-    const autoGeneratedSpecs = generateOpenApiSpecs(app);
+  const autoGeneratedSpecs = generateOpenApiSpecs(app);
 
-    // Start from the jsdoc spec (source of truth)
-    const mergedSpec = { ...swaggerSpec };
-    mergedSpec.paths ??= {};
+  // Start from the jsdoc spec (source of truth)
+  const mergedSpec = { ...swaggerSpec };
+  mergedSpec.paths ??= {};
 
-    // Only add stubs where docs are missing
-    for (const [path, ops] of Object.entries(autoGeneratedSpecs)) {
-        mergedSpec.paths[path] ??= {};
+  // Only add stubs where docs are missing
+  for (const [path, ops] of Object.entries(autoGeneratedSpecs)) {
+    mergedSpec.paths[path] ??= {};
 
-        for (const [method, opSpec] of Object.entries(ops)) {
-            mergedSpec.paths[path][method] ??= opSpec;
-        }
+    for (const [method, opSpec] of Object.entries(ops)) {
+      mergedSpec.paths[path][method] ??= opSpec;
     }
+  }
 
-    app.use("/docs", swaggerServe, swaggerUi.setup(mergedSpec));
+  app.use("/docs", swaggerServe, swaggerUi.setup(mergedSpec));
 };
 
 export default swaggerSetup;

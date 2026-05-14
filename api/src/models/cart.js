@@ -1,5 +1,4 @@
 import db from "#configs/database.js";
-
 // Calculate subtotal
 export async function calculateCartSubtotal(cartId, trx = db) {
   const row = await trx("cart_item as ci")
@@ -91,4 +90,48 @@ export async function listCartItems(cartId, trx = db) {
       "ei.price",
     )
     .where("ci.cart_id", cartId);
+}
+// Checkout cart (transactional)
+export async function checkoutCart(cartId) {
+  return db.transaction(async (trx) => {
+    // Load cart items
+    const items = await trx("cart_item as ci")
+      .join("event_item as ei", "ci.event_item_id", "ei.id")
+      .select("ci.event_item_id", "ci.quantity", "ei.price", "ei.name")
+      .where("ci.cart_id", cartId);
+
+    if (items.length === 0) {
+      throw new Error("Cart is empty");
+    }
+
+    // Calculate subtotal using the existing helper
+    const subtotal = await calculateCartSubtotal(cartId, trx);
+
+    //Create order
+    const [order] = await trx("order")
+      .insert({
+        cart_id: cartId,
+        total: subtotal,
+      })
+      .returning("*");
+
+    // Insert order items
+    for (const item of items) {
+      await trx("order_item").insert({
+        order_id: order.id,
+        event_item_id: item.event_item_id,
+        quantity: item.quantity,
+        price: item.price,
+      });
+    }
+
+    // Clear cart
+    await trx("cart_item").where({ cart_id: cartId }).del();
+
+    return {
+      order,
+      items,
+      subtotal,
+    };
+  });
 }

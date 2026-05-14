@@ -127,6 +127,35 @@ const swaggerOptions = {
             quantity: { type: "integer", minimum: 1 },
           },
         },
+        Order: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            user_id: { type: "integer" },
+            status: { type: "string" },
+            total_amount: { type: "number" },
+            created_at: { type: "string", format: "date-time" },
+          },
+        },
+        OrderItem: {
+          type: "object",
+          properties: {
+            event_item_id: { type: "integer" },
+            quantity: { type: "integer" },
+            price: { type: "number" },
+            name: { type: "string" },
+          },
+        },
+        OrderWithItems: {
+          type: "object",
+          properties: {
+            order: { $ref: "#/components/schemas/Order" },
+            items: {
+              type: "array",
+              items: { $ref: "#/components/schemas/OrderItem" },
+            },
+          },
+        },
       },
     },
   },

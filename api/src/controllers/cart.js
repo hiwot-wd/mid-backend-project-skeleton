@@ -4,6 +4,7 @@ import {
   updateCartItem,
   removeCartItem,
   listCartItems,
+  checkoutCart,
 } from "#models/cart.js";
 
 import { CartAddItemInput, CartUpdateItemInput } from "#schemas/cart.js";
@@ -65,6 +66,21 @@ export async function removeItem(req, res, next) {
     await removeCartItem(itemId);
 
     res.json({ data: { message: "Item removed" } });
+  } catch (error) {
+    next(error);
+  }
+}
+//Transactional checkout
+export async function checkout(req, res, next) {
+  try {
+    const cart = await getOrCreateCartForUser({
+      userId: req.user?.id,
+      cartToken: req.cookies?.cart_token,
+    });
+
+    const result = await checkoutCart(cart.id);
+
+    res.json({ data: result });
   } catch (error) {
     next(error);
   }
